@@ -10,10 +10,10 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 
 @Component
-class RestOAuth2AuthorizationFilter(private val tokenManager: TokenManager) : GenericFilterBean() {
+class JWTValidatorFilter(private val tokenManager: TokenManager) : GenericFilterBean() {
     companion object {
         private const val authenticationHeader = "Authorization"
-        private const val authenticationScheme = "Bearer"
+        private const val bearerScheme = "Bearer"
     }
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
@@ -29,10 +29,11 @@ class RestOAuth2AuthorizationFilter(private val tokenManager: TokenManager) : Ge
     }
 
     private fun extractToken(request: HttpServletRequest): String? {
-        val bearerToken = request.getHeader(authenticationHeader)
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("$authenticationScheme ")) {
-            return bearerToken.substring(authenticationScheme.length + 1)
+        val token = request.getHeader(authenticationHeader)
+        if (StringUtils.hasText(token) && token.startsWith("$bearerScheme ")) {
+            return token.substring(bearerScheme.length + 1)
         }
-        return null
+        return token
     }
+
 }

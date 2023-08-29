@@ -5,8 +5,8 @@ import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import org.springframework.cache.CacheManager
+import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -17,13 +17,14 @@ class TokenManager(cacheManager: CacheManager) {
         private const val claimName = "name"
         private const val claimEmail = "email"
 
-        private const val secret = "qsbWaaBHBN/I7FYOrev4yQFJm60sgZkWIEDlGtsRl7El/k+DbUmg8nmWiVvEfhZ91Y67Sc6Ifobi05b/XDwBy4kXUcKTitNqocy7rQ9Z3kMipYjbL3WZUJU2luigIRxhTVNw8FXdT5q56VfY0LcQv3mEp6iFm1JG43WyvGFV3hCkhLPBJV0TWnEi69CfqbUMAIjmymhGjcbqEK8Wt10bbfxkM5uar3tpyqzp3Q=="
+        private const val secret =
+            "qsbWaaBHBN/I7FYOrev4yQFJm60sgZkWIEDlGtsRl7El/k+DbUmg8nmWiVvEfhZ91Y67Sc6Ifobi05b/XDwBy4kXUcKTitNqocy7rQ9Z3kMipYjbL3WZUJU2luigIRxhTVNw8FXdT5q56VfY0LcQv3mEp6iFm1JG43WyvGFV3hCkhLPBJV0TWnEi69CfqbUMAIjmymhGjcbqEK8Wt10bbfxkM5uar3tpyqzp3Q=="
         private val key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret))
     }
 
     private val cache = cacheManager.getCache("tokenManager")!!
 
-    operator fun get(token: String): OAuth2AuthenticationToken? {
+    operator fun get(token: String): Authentication? {
         return if (validate(token)) {
             val authentication = cache.get(token)?.get()
             authentication as OAuth2AuthenticationToken
@@ -33,7 +34,7 @@ class TokenManager(cacheManager: CacheManager) {
         }
     }
 
-    operator fun set(token: String, authentication: OAuth2AuthenticationToken) {
+    operator fun set(token: String, authentication: Authentication) {
         cache.put(token, authentication)
     }
 
@@ -44,13 +45,13 @@ class TokenManager(cacheManager: CacheManager) {
         val authorities = authentication.authorities?.joinToString { it.authority } ?: ""
         val expiration = Date(System.currentTimeMillis() + (60 * 60 * 1000))
         return Jwts.builder()
-                .setSubject(subject)
-                .claim(claimAuthorities, authorities)
-                .claim(claimName, name)
-                .claim(claimEmail, email)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .setExpiration(expiration)
-                .compact()
+            .setSubject(subject)
+            .claim(claimAuthorities, authorities)
+            .claim(claimName, name)
+            .claim(claimEmail, email)
+            .signWith(key, SignatureAlgorithm.HS512)
+            .setExpiration(expiration)
+            .compact()
     }
 
     private fun validate(token: String): Boolean {

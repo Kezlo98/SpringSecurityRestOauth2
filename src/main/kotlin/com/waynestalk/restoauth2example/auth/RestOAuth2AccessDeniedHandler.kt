@@ -6,7 +6,11 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class RestOAuth2AccessDeniedHandler : AccessDeniedHandler {
-    override fun handle(request: HttpServletRequest, response: HttpServletResponse, accessDeniedException: AccessDeniedException) {
+    override fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        accessDeniedException: AccessDeniedException
+    ) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.message)
     }
 }

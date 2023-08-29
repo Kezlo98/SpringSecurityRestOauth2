@@ -52,7 +52,8 @@ class RestOAuth2AuthenticationFilter(
         private val redirectUriMap = mapOf(
             "google" to GOOGLE_REDIRECT_URI,
             "github" to GITHUB_REDIRECT_URI,
-            "facebook" to FACEBOOK_REDIRECT_URI)
+            "facebook" to FACEBOOK_REDIRECT_URI
+        )
         private const val NONCE_PARAMETER_NAME = "nonce"
     }
 
@@ -99,7 +100,7 @@ class RestOAuth2AuthenticationFilter(
         val clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId)
             ?: throw OAuth2AuthenticationException(OAuth2Error("client_registration_not_found"))
 
-        val redirectUri = redirectUriMap[registrationId];
+        val redirectUri = redirectUriMap[registrationId]
 
         authorizationRequestResolver.setAuthorizationRequestCustomizer {
             it.redirectUri(redirectUri)
@@ -123,7 +124,7 @@ class RestOAuth2AuthenticationFilter(
                 as OAuth2LoginAuthenticationToken
 
         val username = tokenManager.getUserName(authenticationResult.principal.attributes, registrationId)
-        val user = loadUser(username) ?: createUser(
+        val user = loadUser(username, registrationId) ?: createUser(
             Member(
                 username,
                 registrationId,
@@ -155,9 +156,9 @@ class RestOAuth2AuthenticationFilter(
         return request.getParameter("code")
     }
 
-    private fun loadUser(username: String): UserDetails? {
+    private fun loadUser(username: String, registrationId: String): UserDetails? {
         return try {
-            userDetailsService.loadUserByUsername(username)
+            userDetailsService.loadUserByUsernameAndRegistrationId(username, registrationId)
         } catch (e: Exception) {
             null
         }
@@ -166,7 +167,7 @@ class RestOAuth2AuthenticationFilter(
     private fun createUser(member: Member): UserDetails {
         memberRepository.save(member)
 
-        return userDetailsService.loadUserByUsername(member.username)
+        return userDetailsService.loadUserByUsernameAndRegistrationId(member.username, member.registrationId?:"google")
     }
 
     private fun mergeAuthorities(

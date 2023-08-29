@@ -1,9 +1,5 @@
 package com.waynestalk.restoauth2example.config
 
-import com.waynestalk.restoauth2example.model.Member
-import com.waynestalk.restoauth2example.repository.MemberRepository
-import org.springframework.boot.ApplicationRunner
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
